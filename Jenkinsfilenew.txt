@@ -4,24 +4,24 @@
         maven "maven"
     }
 environment {
-        SONARQUBE_SCANNER_HOME = tool name: 'sonarqube', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+        SONARQUBE_SCANNER_HOME = tool name: 'sonarscanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
     }
     stages{
         stage("Fetch code from github repo"){
             steps{
                 checkout([$class: 'GitSCM',
-                branches: [[name: '*/main' ]],
+                branches: [[name: '*/master' ]],
                 extensions: scm.extensions,
                 userRemoteConfigs: [[
-                    url: 'https://github.com/KamalUppuluri/devopsclasscodesprivate.git',
-                    credentialsId: 'GITHUBTOKEN'
+                    url: 'https://github.com/anilreddypapana/DevOpsClassCodes.git',
+                  //  credentialsId: 'GITHUBTOKEN'
                 ]]
             ])
             }
         }
       stage('SonarQube Analysis') {
            steps {
-withSonarQubeEnv('sonarqube-server') {
+withSonarQubeEnv('sonarqube') {
       sh 'mvn clean package sonar:sonar'
     } 
 
@@ -42,7 +42,7 @@ stage("This is to package the code"){
        stage('Push artifacts into artifactory') {
             steps {
               rtUpload (
-                serverId: 'artifactory-jenkins',
+                serverId: 'artifactory',
                 spec: '''{
                       "files": [
                         {
