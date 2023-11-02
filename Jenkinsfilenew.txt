@@ -1,0 +1,58 @@
+ pipeline{
+    agent any
+    tools{
+        maven "maven"
+    }
+environment {
+        SONARQUBE_SCANNER_HOME = tool name: 'sonarqube', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+    }
+    stages{
+        stage("Fetch code from github repo"){
+            steps{
+                checkout([$class: 'GitSCM',
+                branches: [[name: '*/main' ]],
+                extensions: scm.extensions,
+                userRemoteConfigs: [[
+                    url: 'https://github.com/KamalUppuluri/devopsclasscodesprivate.git',
+                    credentialsId: 'GITHUBTOKEN'
+                ]]
+            ])
+            }
+        }
+      stage('SonarQube Analysis') {
+           steps {
+withSonarQubeEnv('sonarqube-server') {
+      sh 'mvn clean package sonar:sonar'
+    } 
+
+              }
+            }
+stage("This is to build the code"){
+            steps{
+                sh 'mvn compile'
+                echo 'Run Success'
+            }
+        }
+stage("This is to package the code"){
+            steps{
+                sh 'mvn package'
+                echo 'Run Success'
+            }
+        }
+       stage('Push artifacts into artifactory') {
+            steps {
+              rtUpload (
+                serverId: 'artifactory-jenkins',
+                spec: '''{
+                      "files": [
+                        {
+                          "pattern": "*.war",
+                           "target": "libs-release/maven-jenkins-files/"
+                        }
+                    ]
+                }'''
+              )
+          }
+        }
+    }
+}
