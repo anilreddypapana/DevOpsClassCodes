@@ -54,5 +54,14 @@ stage("This is to package the code"){
               )
           }
         }
-    }
+stage("Docker login to docker hub"){
+            steps{
+             withCredentials([usernamePassword(credentialsId: 'docker')]) {
+                    sh "docker login -u anilreddypapana"
+                }
+             sh 'docker build -t anilreddypapana/addressbook:latest .'
+             sh 'docker push anilreddypapana/addressbook:latest'
+         }
+       }
+}
 }
